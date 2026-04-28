@@ -3,42 +3,59 @@ const router = express.Router();
 const Note = require("../models/Note");
 const auth = require("../middleware/auth");
 
-// GET
+// GET NOTES
 router.get("/", auth, async (req, res) => {
-  const notes = await Note.find({ userId: req.user.id });
-  res.json(notes);
+  try {
+    const notes = await Note.find({ userId: req.user.id });
+    res.json(notes);
+  } catch {
+    res.json({ error: "Failed to fetch notes" });
+  }
 });
 
 // CREATE
 router.post("/", auth, async (req, res) => {
-  const note = new Note({
-    title: req.body.title,
-    content: req.body.content,
-    userId: req.user.id
-  });
+  try {
+    const { title, content } = req.body;
 
-  const saved = await note.save();
-  res.json(saved);
+    const note = new Note({
+      userId: req.user.id,
+      title,
+      content
+    });
+
+    await note.save();
+    res.json(note);
+  } catch {
+    res.json({ error: "Failed to create note" });
+  }
 });
 
 // UPDATE
 router.put("/:id", auth, async (req, res) => {
-  const updated = await Note.findByIdAndUpdate(
-    req.params.id,
-    {
-      title: req.body.title,
-      content: req.body.content
-    },
-    { new: true }
-  );
+  try {
+    const { title, content } = req.body;
 
-  res.json(updated);
+    const note = await Note.findByIdAndUpdate(
+      req.params.id,
+      { title, content },
+      { new: true }
+    );
+
+    res.json(note);
+  } catch {
+    res.json({ error: "Failed to update note" });
+  }
 });
 
 // DELETE
 router.delete("/:id", auth, async (req, res) => {
-  await Note.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
+  try {
+    await Note.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch {
+    res.json({ error: "Failed to delete note" });
+  }
 });
 
 module.exports = router;
