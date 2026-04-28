@@ -12,6 +12,11 @@ app.use(cors({
   origin: "*"
 }));
 
+// ✅ Health check route (important for deployment testing)
+app.get("/", (req, res) => {
+  res.send("Cloud Notes API is running 🚀");
+});
+
 // Routes
 app.use("/auth", require("./routes/auth"));
 app.use("/notes", require("./routes/notes"));
@@ -19,7 +24,10 @@ app.use("/notes", require("./routes/notes"));
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.error("MongoDB Error:", err);
+    process.exit(1); // stop app if DB fails
+  });
 
 // Server
 const PORT = process.env.PORT || 5000;
